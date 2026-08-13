@@ -20,35 +20,36 @@ Each configured account creates the following sensors:
 | Weekly Resets In | `3 days` | — | Time until weekly usage resets |
 | Weekly Resets At | `2026-02-02T00:00:00+00:00` | — | Exact reset instant (live countdown in the UI) |
 | Weekly Elapsed | `50.0` | `%` | How much of the 7-day window has gone by |
-| Weekly Usage Pace | `120.0` | `%` | Usage relative to the elapsed week — see below |
+| Weekly Usage Pace | `+10.0` | `%` | How far ahead of / behind budget you are — see below |
 | Model Info | `gemma3:27b, 369 requests` | — | Models used and request counts |
 
 ### Week usage pace
 
-`Weekly Usage Pace` divides weekly usage by how far into the 7-day window you are:
+`Weekly Usage Pace` compares how much of the weekly allowance you spent with how much of the week went by:
 
 ```
-pace = weekly_usage_% / weekly_elapsed_% * 100
+pace = weekly_usage_% - weekly_elapsed_%
 ```
 
-- `100` — spending exactly on budget.
-- `120` — burning the allowance 1.2x too fast; at this rate the week would end at 120% (i.e. you run out early).
-- `< 100` — you will finish the week with allowance to spare.
+- `0` — exactly on budget (50% used halfway through the week).
+- `+10` — 10 points ahead of budget: you spent 60% with only 50% of the week gone.
+- `-10` — 10 points behind: 40% used at the halfway mark, so you are on track to finish with allowance left.
 
-It reads as both a pace index and the projected end-of-week usage. The elapsed share comes from the exact reset
-timestamp ollama.com renders on the settings page (`data-time`), not from the rounded "resets in 3 days" text, so it
-stays accurate to the second.
+The elapsed share comes from the exact reset timestamp ollama.com renders on the settings page (`data-time`), not
+from the rounded "resets in 3 days" text, so it stays accurate to the second.
 
 The pace sensor carries extra attributes:
 
 | Attribute | Meaning |
 |---|---|
 | `week_elapsed_percent` | Share of the week already gone |
-| `usage_vs_elapsed_points` | Usage minus elapsed, in percentage points (`+10` = 10 points ahead of budget) |
+| `week_usage_percent` | Weekly usage, so the two sides of the subtraction sit together |
+| `projected_week_usage` | Usage the week would end at if the current rate held (`120` = you run out early) |
 | `estimated_exhaustion` | When the allowance runs out at the current pace, or `null` if it lasts to the reset |
 
-Pace stays `unknown` for the first ~1.7 hours of a window (1% of the week), where a single request would read as a
-wild over-budget ratio, and whenever the reset timestamp cannot be parsed.
+Pace itself is available as soon as the reset timestamp is known. The two extrapolations
+(`projected_week_usage`, `estimated_exhaustion`) stay `null` for the first ~1.7 hours of a window (1% of the week),
+where a single request would project a wild end-of-week figure.
 
 ## Installation
 

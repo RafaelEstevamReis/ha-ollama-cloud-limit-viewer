@@ -41,7 +41,7 @@ def _state(hass: HomeAssistant, entry: MockConfigEntry, key: str):
 
 
 async def test_pace_sensors(hass: HomeAssistant):
-    """60% of the weekly allowance spent halfway through the week = 120% pace."""
+    """60% used halfway through the week = 10 points ahead of budget."""
     resets_at = dt_util.utcnow() + timedelta(days=3.5)
     entry = await _setup(
         hass,
@@ -54,9 +54,10 @@ async def test_pace_sensors(hass: HomeAssistant):
     )
 
     pace = _state(hass, entry, "weekly_pace")
-    assert float(pace.state) == pytest.approx(120.0, abs=0.5)
+    assert float(pace.state) == pytest.approx(10.0, abs=0.2)
     assert pace.attributes["week_elapsed_percent"] == pytest.approx(50.0, abs=0.2)
-    assert pace.attributes["usage_vs_elapsed_points"] == pytest.approx(10.0, abs=0.2)
+    assert pace.attributes["week_usage_percent"] == 60.0
+    assert pace.attributes["projected_week_usage"] == pytest.approx(120.0, abs=0.5)
     assert pace.attributes["estimated_exhaustion"] is not None
 
     assert float(_state(hass, entry, "weekly_elapsed").state) == pytest.approx(

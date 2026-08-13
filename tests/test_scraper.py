@@ -46,16 +46,22 @@ def test_missing_data_time_keeps_relative_text():
 
 
 @pytest.mark.parametrize(
-    ("used", "expected_pace"),
-    [(50.0, 100.0), (75.0, 150.0), (25.0, 50.0), (0.0, 0.0)],
+    ("used", "expected_pace", "expected_projection"),
+    [
+        (50.0, 0.0, 100.0),  # dead on budget
+        (60.0, 10.0, 120.0),  # 10 points ahead of budget
+        (40.0, -10.0, 80.0),  # 10 points behind
+        (0.0, -50.0, 0.0),  # nothing spent yet
+    ],
 )
-def test_pace_against_a_half_spent_week(used, expected_pace):
+def test_pace_against_a_half_spent_week(used, expected_pace, expected_projection):
     data = OllamaUsageData(
         weekly_percent=used, weekly_resets_at=NOW + timedelta(days=3.5)
     )
 
     assert data.week_elapsed_percent(NOW) == 50.0
     assert data.week_usage_pace(NOW) == expected_pace
+    assert data.week_projected_usage(NOW) == expected_projection
 
 
 def test_elapsed_is_clamped_to_the_window():
@@ -66,13 +72,17 @@ def test_elapsed_is_clamped_to_the_window():
     assert stale.week_elapsed_percent(NOW) == 100.0
 
 
-def test_pace_is_suppressed_right_after_a_reset():
+def test_pace_is_defined_right_after_a_reset_but_the_projection_is_not():
     data = OllamaUsageData(
         weekly_percent=0.5, weekly_resets_at=NOW + timedelta(days=7, minutes=-30)
     )
 
     assert data.week_elapsed_percent(NOW) == pytest.approx(0.298, abs=0.01)
-    assert data.week_usage_pace(NOW) is None
+    # A raw delta stays meaningful with barely any week gone by...
+    assert data.week_usage_pace(NOW) == pytest.approx(0.2, abs=0.01)
+    # ...but extrapolating from 18 minutes of data is not.
+    assert data.week_projected_usage(NOW) is None
+    assert data.week_exhausted_at(NOW) is None
 
 
 def test_exhaustion_estimate():

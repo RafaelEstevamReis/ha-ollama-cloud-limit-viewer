@@ -36,16 +36,11 @@ def _round(value: float | None) -> float | None:
 
 def _pace_attributes(data: OllamaUsageData) -> dict[str, Any]:
     now = dt_util.utcnow()
-    elapsed = data.week_elapsed_percent(now)
     exhausted_at = data.week_exhausted_at(now)
-    delta = (
-        round(data.weekly_percent - elapsed, 1)
-        if elapsed is not None and data.weekly_percent is not None
-        else None
-    )
     return {
-        "week_elapsed_percent": _round(elapsed),
-        "usage_vs_elapsed_points": delta,
+        "week_elapsed_percent": _round(data.week_elapsed_percent(now)),
+        "week_usage_percent": data.weekly_percent,
+        "projected_week_usage": data.week_projected_usage(now),
         "estimated_exhaustion": exhausted_at.isoformat() if exhausted_at else None,
     }
 

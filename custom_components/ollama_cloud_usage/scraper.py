@@ -37,12 +37,18 @@ class OllamaUsageData:
         return min(max(elapsed, 0.0), period) / period * 100
 
     def week_usage_pace(self, now: datetime) -> float | None:
-        """Usage measured against how far into the week we are.
+        """Usage minus the share of the week already gone, in percentage points.
 
-        100 means spending exactly on budget, 150 means burning the weekly
-        allowance 1.5x too fast — which is also the usage the week would end
-        at if the current rate held.
+        0 means dead on budget (50% used halfway through the week), +10 means
+        10 points ahead of budget, -10 means 10 points behind.
         """
+        elapsed = self.week_elapsed_percent(now)
+        if elapsed is None or self.weekly_percent is None:
+            return None
+        return round(self.weekly_percent - elapsed, 1)
+
+    def week_projected_usage(self, now: datetime) -> float | None:
+        """Usage the week would end at if the current rate held, in percent."""
         elapsed = self.week_elapsed_percent(now)
         if elapsed is None or self.weekly_percent is None:
             return None
