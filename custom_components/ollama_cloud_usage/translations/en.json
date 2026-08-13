@@ -58,6 +58,15 @@
       "weekly_resets_in": {
         "name": "Weekly Resets In"
       },
+      "weekly_resets_at": {
+        "name": "Weekly Resets At"
+      },
+      "weekly_elapsed": {
+        "name": "Weekly Elapsed"
+      },
+      "weekly_pace": {
+        "name": "Weekly Usage Pace"
+      },
       "model_info": {
         "name": "Model Info"
       }

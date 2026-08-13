@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 DOMAIN = "ollama_cloud_usage"
 
 CONF_COOKIE = "cookie"
@@ -11,3 +13,10 @@ USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
 )
+
+# Ollama resets the cloud allowance on a fixed 7-day cycle.
+WEEKLY_PERIOD = timedelta(days=7)
+
+# Below this share of the week, the pace ratio is noise (a single request
+# right after the reset would read as "1000% over budget").
+MIN_ELAPSED_PERCENT = 1.0
