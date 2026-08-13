@@ -17,6 +17,6 @@ USER_AGENT = (
 # Ollama resets the cloud allowance on a fixed 7-day cycle.
 WEEKLY_PERIOD = timedelta(days=7)
 
-# Below this share of the week, the pace ratio is noise (a single request
-# right after the reset would read as "1000% over budget").
+# Below this share of the week, extrapolating a rate is noise (a single request
+# right after the reset would project a 1000% week).
 MIN_ELAPSED_PERCENT = 1.0
